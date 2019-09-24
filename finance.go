@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 )
 
 var db *sqlx.DB
+var configuration Configuration
 
 type Card struct {
 	Card_ID int64
@@ -47,7 +49,7 @@ func UpdateCardByName(card *Card) {
 func getHandler(w http.ResponseWriter, r *http.Request) {
 
 	var err error
-	db, err = sqlx.Connect("postgres", "host=10.115.20.240 user=postgres password=tamplier dbname=budget sslmode=disable")
+	db, err = sqlx.Connect(configuration.DBType, configuration.ConnectionString)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -71,12 +73,12 @@ func getHandler(w http.ResponseWriter, r *http.Request) {
 	//	fmt.Fprintf(w, "%v - %v - %v\n", card.Card_ID, card.Card_Name, card.Description)
 	//}
 
-	//cardIns := Card {
-	//	Card_Name: "TestCard",
-	//	Description: "test changed card",
-	//}
+	cardIns := Card {
+		Card_Name: "**9753",
+		Description: "Alfa-Bank",
+	}
 
-	//InsertCard(&cardIns)
+	InsertCard(&cardIns)
 
 	cards := GetCards()
 
@@ -88,13 +90,15 @@ func getHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	fmt.Printf("hello there")
+
+	configuration = LoadConfig()
+
 
 	router := mux.NewRouter()
 	router.HandleFunc("/", getHandler).Methods("GET")
 
 	http.Handle("/", router)
-	err := http.ListenAndServe(":8082", nil)
+	err := http.ListenAndServe(configuration.ListenTo, nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
